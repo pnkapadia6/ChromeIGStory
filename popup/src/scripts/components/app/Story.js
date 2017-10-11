@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import _get from 'lodash.get';
 import StoryGallery from 'react-image-gallery';
 import SingleProgressBar from './SingleProgressBar';
 import IconButton from 'material-ui/IconButton';
@@ -8,6 +9,7 @@ import {List, ListItem} from 'material-ui/List';
 import Avatar from 'material-ui/Avatar';
 import VisibilityIcon from 'material-ui/svg-icons/action/visibility';
 import DownloadIcon from 'material-ui/svg-icons/file/file-download';
+import LaunchIcon from 'material-ui/svg-icons/action/launch';
 import {downloadStory, isVideo} from '../../../../../utils/Utils';
 import AnalyticsUtil from '../../../../../utils/AnalyticsUtil';
 
@@ -321,6 +323,13 @@ render() {
       zIndex: 4,
       color: 'white'
     },
+    launchButton: {
+      position: 'absolute',
+      bottom: '40px',
+      right: '0px',
+      zIndex: 4,
+      color: 'white'
+    },
     storyViewersButton: {
       position: 'absolute',
       bottom: '50px',
@@ -330,7 +339,9 @@ render() {
     }
   }
 
+  const { currentStoryItem } = this.state;
   const media = this.props.item.media;
+  const storyLinkUri = _get(currentStoryItem, 'story_cta[0].links[0].webUri');
   const allPossibleProgressBars = this.state.progressBarsArray.map((pb, key) => {
     return (
       <SingleProgressBar
@@ -344,8 +355,8 @@ render() {
   });
 
   var storyViewersListData = [];
-  if(this.state.currentStoryItem.viewers) {
-    storyViewersListData = this.state.currentStoryItem.viewers.map((storyViewer, key) => {
+  if(currentStoryItem.viewers) {
+    storyViewersListData = currentStoryItem.viewers.map((storyViewer, key) => {
       return (
         <ListItem
           key={key}
@@ -381,15 +392,15 @@ render() {
         </div>
 
         <div className="storyAuthorAttribution" style={styles.storyAuthorAttribution}>
-          <img src={this.state.currentStoryItem.user.profile_pic_url} style={styles.storyAuthorImage} onClick={() => this.onStoryAuthorUsernameClicked()} />
-          <p style={styles.storyAuthorUsername} onClick={() => this.onStoryAuthorUsernameClicked()}>{this.state.currentStoryItem.user.username}</p>
+          <img src={currentStoryItem.user.profile_pic_url} style={styles.storyAuthorImage} onClick={() => this.onStoryAuthorUsernameClicked()} />
+          <p style={styles.storyAuthorUsername} onClick={() => this.onStoryAuthorUsernameClicked()}>{currentStoryItem.user.username}</p>
           {(this.props.isFullscreen) ? <span style={styles.closeFullscreenStoryButton} onClick={() => this.onCloseFullscreenStoryButtonClicked()}>X</span> : ''}
         </div>
 
-        {this.state.currentStoryItem.viewers &&
+        {currentStoryItem.viewers &&
           <FlatButton
             style={styles.storyViewersButton}
-            label={this.state.currentStoryItem.viewers.length}
+            label={currentStoryItem.viewers.length}
             icon={<VisibilityIcon color={"#ffffff"}/>}
             onClick={() => this.toggleStoryViewersList()}/>
         }
@@ -405,6 +416,17 @@ render() {
           }}>
           {(this.state.isDownloadingStory) ? <CircularProgress size={24} color={"#ffffff"}/> : <DownloadIcon color={"#ffffff"}/>}
         </IconButton>
+
+        {storyLinkUri &&
+          <IconButton
+            style={styles.launchButton}
+            tooltip="Open Link"
+            tooltipPosition="top-center">
+            <a href={storyLinkUri} target="_blank">
+              <LaunchIcon color={"#ffffff"}/>
+            </a>
+          </IconButton>
+        }
 
         {this.state.isStoryViewersListActive &&
           <List style={styles.storyViewersList}>
